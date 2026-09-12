@@ -1,0 +1,55 @@
+name: full-analysis
+
+on:
+  push:
+    branches: [full-analysis-run]
+    paths:
+      - scripts/full_analysis.py
+      - .github/workflows/full_analysis.yml
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install analysis dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy scipy scikit-learn statsmodels duckdb openpyxl
+      - name: Download UCI Online Retail II
+        run: |
+          mkdir -p run_data/retail
+          curl -L --fail --retry 3 \
+            'https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip' \
+            -o run_data/online_retail_ii.zip
+          unzip -q run_data/online_retail_ii.zip -d run_data/retail
+          find run_data/retail -maxdepth 2 -type f -print
+      - name: Download Criteo Uplift
+        run: |
+          mkdir -p run_data/criteo
+          curl -L --fail --retry 3 \
+            'https://huggingface.co/datasets/criteo/criteo-uplift/resolve/main/criteo-research-uplift-v2.1.csv.gz' \
+            -o run_data/criteo/criteo-research-uplift-v2.1.csv.gz
+          ls -lh run_data/criteo
+      - name: Run full analysis
+        run: |
+          RETAIL_FILE=$(find run_data/retail -type f \( -iname '*.xlsx' -o -iname '*.xls' \) | head -1)
+          test -n "$RETAIL_FILE"
+          python scripts/full_analysis.py \
+            --retail "$RETAIL_FILE" \
+            --criteo run_data/criteo/criteo-research-uplift-v2.1.csv.gz \
+            --out results
+      - name: Print results
+        run: cat RESULTS.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-analysis-results
+          path: |
+            RESULTS.md
+            results/
+          retention-days: 14
