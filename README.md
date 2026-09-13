@@ -159,3 +159,8 @@ The project never silently substitutes synthetic data for a missing public sourc
 ## Why this is not a toy project
 
 The project separates observational analytics from randomized causal measurement, executes against full public datasets, persists verified outputs, uses modular code/tests/CI rather than notebook-only analysis, explicitly checks experiment validity, and translates statistical results into decision-oriented takeaways rather than stopping at a model score.
+
+
+## Learn it for interviews
+
+Use the project-specific [Interview Guide](docs/INTERVIEW_GUIDE.md) for a 60-second walkthrough, key concepts, likely questions, reproducible study steps, and the honest boundary of the work.
